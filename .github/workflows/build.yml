@@ -1,4 +1,4 @@
-name: Build
+Name: Build
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [c1s, c2s, r8s, x1s, y2s, z3s]
+        target: [a04]
 
     steps:
       - name: Checkout repo
@@ -104,16 +104,13 @@ jobs:
           ./scripts/make_rom.sh 
           
       - name: Upload to Pixeldrain & GitHub Release
-        # Cho phép chạy khi trigger thủ công HOẶC khi push code
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         env:
           PIXELDRAIN_API_KEY: "97e0067f-7ee5-412b-99e3-b2442c1ebb8d"
           GH_TOKEN: ${{ secrets.PAT }}
           RELEASE_REPO: "ArtisanROM/rom_resources"
-          # Nếu không phải workflow_dispatch thì mặc định lấy 'debug'
           BUILD_TYPE: ${{ github.event.inputs.build_type || 'debug' }}
         run: |
-          # Bật shopt nullglob để nếu không có file zip thì vòng lặp không bị chạy lỗi với chuỗi thô "out/*.zip"
           shopt -s nullglob
           
           ZIP_FILES=(out/*.zip)
@@ -128,7 +125,7 @@ jobs:
             FILE_SIZE=$(stat -c%s "$file")
             FILE_MD5=$(md5sum "$file" | awk '{print $1}')
             VERSION=$(echo "$FILE_NAME" | grep -oP '\d+\.\d+\.\d+' | head -n 1)
-            [ -z "$VERSION" ] && VERSION="1.0.0" # Mặc định nếu không tìm thấy chuỗi version
+            [ -z "$VERSION" ] && VERSION="1.0.0"
             BUILD_DATE=$(date +%Y-%m-%d)
 
             # 1. Tải lên Pixeldrain và lấy Link
