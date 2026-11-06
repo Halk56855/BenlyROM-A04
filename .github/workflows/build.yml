@@ -1,4 +1,4 @@
-name: Build
+Name: Build
 
 on:
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
         target: [a04]
 
     env:
-      TARGET_OS_SINGLE_SYSTEM_IMAGE: "system"
+      TARGET_OS_SINGLE_SYSTEM_IMAGE: ""
 
     steps:
       - name: Checkout repo
