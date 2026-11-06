@@ -1,4 +1,4 @@
-name: Build
+Name: Build
 
 on:
   workflow_dispatch:
@@ -55,13 +55,19 @@ jobs:
         run: |
           sudo apt update
           KERNEL_VERSION=$(uname -r)
+          
+          # Cài đặt các gói công cụ cần thiết
           DEBIAN_FRONTEND=noninteractive sudo apt install -yq \
             attr ccache clang ffmpeg libbrotli-dev libbz2-dev \
             libgtest-dev libprotobuf-dev libunwind-dev libpcre2-dev \
-            libzstd-dev "linux-modules-extra-${KERNEL_VERSION}" lld protobuf-compiler webp \
+            libzstd-dev lld protobuf-compiler webp \
             build-essential g++-aarch64-linux-gnu gcc-aarch64-linux-gnu python-is-python3 python3 wget
+
+          # Thử cài đặt linux-modules-extra, nếu không tìm thấy thì bỏ qua để không lỗi pipeline
+          DEBIAN_FRONTEND=noninteractive sudo apt install -yq "linux-modules-extra-${KERNEL_VERSION}" || echo "Warning: linux-modules-extra not found for kernel ${KERNEL_VERSION}, skipping..."
+
           wget https://raw.githubusercontent.com/kdrag0n/kramflash/refs/heads/master/mkbootimg.py && sudo ln -sf $(pwd)/mkbootimg.py /usr/bin/mkbootimg && chmod +x /usr/bin/mkbootimg
-          sudo modprobe erofs f2fs
+          sudo modprobe erofs f2fs || true
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p security
