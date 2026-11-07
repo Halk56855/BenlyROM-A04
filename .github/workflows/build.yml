@@ -1,4 +1,4 @@
-name: Build
+Name: Build
 
 on:
   workflow_dispatch:
@@ -28,6 +28,18 @@ jobs:
       fail-fast: false
       matrix:
         target: [a04]
+
+    env:
+      TARGET_OS_SINGLE_SYSTEM_IMAGE: "true"
+      TARGET_LCD_CONFIG_HFR_DEFAULT_REFRESH_RATE: "60"
+      SOURCE_LCD_CONFIG_HFR_MODE: "0"
+      TARGET_LCD_CONFIG_HFR_MODE: "0"
+      SOURCE_LCD_SUPPORT_MDNIE_HW: "0"
+      TARGET_LCD_SUPPORT_MDNIE_HW: "0"
+      SOURCE_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT: "1"
+      TARGET_RIL_SIM_CONFIG_MULTISIM_TRAYCOUNT: "1"
+      SOURCE_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG: "0"
+      TARGET_RIL_SUPPORT_WATERPROOF_SIM_TRAY_MSG: "0"
 
     steps:
       - name: Checkout repo
@@ -78,21 +90,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-
-      - name: Patch gen_config_file.sh
-        run: |
-          python3 - << 'EOF'
-          import os
-          path = "scripts/internal/gen_config_file.sh"
-          if os.path.exists(path):
-              with open(path, "r") as f:
-                  content = f.read()
-              # استبدال الأوامر التي توقف البناء بأوامر طباعة عادية لتجاوز الفحص
-              new_content = content.replace("exit 1", "echo 'Bypassed exit'")
-              with open(path, "w") as f:
-                  f.write(new_content)
-              print("Successfully patched gen_config_file.sh")
-          EOF
 
       - name: Build dependencies
         run: |
