@@ -12,6 +12,16 @@ jobs:
     steps:
       - name: Checkout main repository
         uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Remove existing submodule if present
+        run: |
+          git submodule deinit -f target/a04/installer || true
+          git rm -rf target/a04/installer || true
+          rm -rf .git/modules/target/a04/installer || true
+          git config -f .gitmodules --remove-section submodule.target/a04/installer || true
+          rm -rf target/a04/installer
 
       - name: Checkout target repository
         uses: actions/checkout@v4
@@ -27,6 +37,6 @@ jobs:
           rm -rf temp_source
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add target/a04/installer
-          git commit -m "Copy installer folder content directly"
+          git add .gitmodules target/a04/installer
+          git commit -m "Replace submodule with actual installer folder content" || echo "No changes to commit"
           git push
