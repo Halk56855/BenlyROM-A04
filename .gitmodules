@@ -25,6 +25,3 @@
 [submodule "target/a04/patches/tee"]
 	path = target/a04/patches/tee
 	url = https://github.com/ohjhas/target_a04_patches_tee.git
-[submodule "target/a04/installer"]
-	path = target/a04/installer
-	url = https://github.com/DaniHasReal/UN1CA-a04-a34x.git
