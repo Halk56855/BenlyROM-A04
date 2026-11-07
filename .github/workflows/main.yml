@@ -1,0 +1,23 @@
+name: Add Submodule Automatically
+
+on:
+  workflow_dispatch: # يتيح لك تشغيل الـ Action يدوياً بضغطة زر من موقع GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  add-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add git submodule
+        run: |
+          git submodule add https://github.com/ohjhas/target_a04_patches_tee.git target/a04/patches/tee
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .gitmodules target/a04/patches/tee
+          git commit -m "Add target/a04/patches/tee submodule"
+          git push
