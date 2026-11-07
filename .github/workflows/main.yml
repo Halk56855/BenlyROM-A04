@@ -1,4 +1,4 @@
-name: Add Installer Submodule
+name: Copy Installer Folder Content
 
 on:
   workflow_dispatch:
@@ -7,17 +7,26 @@ permissions:
   contents: write
 
 jobs:
-  add-submodule:
+  copy-folder:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout main repository
         uses: actions/checkout@v4
 
-      - name: Add git submodule
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'DaniHasReal/UN1CA-a04-a34x'
+          ref: 'd84dfc7dc3c03abc336767b2d3a32838362b7433'
+          path: 'temp_source'
+
+      - name: Copy target/a04/installer contents
         run: |
-          git submodule add https://github.com/DaniHasReal/UN1CA-a04-a34x.git target/a04/installer
+          mkdir -p target/a04/installer
+          cp -r temp_source/target/a04/installer/* target/a04/installer/
+          rm -rf temp_source
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .gitmodules target/a04/installer
-          git commit -m "Add target/a04/installer submodule"
+          git add target/a04/installer
+          git commit -m "Copy installer folder content directly"
           git push
