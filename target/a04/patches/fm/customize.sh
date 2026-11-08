@@ -1,15 +1,31 @@
-# Add specific files to make FM radio work
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/etc/permissions/privapp-permissions-com.sec.android.app.fm.xml" 0 0 755 "u:object_r:system_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/etc/permissions/signature-permissions-com.sec.android.app.fm.xml" 0 0 755 "u:object_r:system_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/etc/sysconfig/preinstalled-packages-com.sec.android.app.fm.xml" 0 0 755 "u:object_r:system_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/libfmradio_jni.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/vendor.qti.hardware.fm-V1-ndk.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system_ext" "lib64/fm_helium.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system_ext" "lib64/libfm-hci.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system_ext" "lib64/vendor.qti.hardware.fm@1.0.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/android.hardware.bluetooth.audio-V3-ndk.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/android.hardware.audio.common-V2-ndk.so" 0 0 755 "u:object_r:system_lib_file:s0"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/lib64/android.media.audio.common.types-V2-ndk.so" 0 0 755 "u:object_r:system_lib_file:s0"
+#!/usr/bin/env bash
+
+# Safe FM radio files and libraries copy for Galaxy A04
+fm_items=(
+    "system/system/etc/permissions/privapp-permissions-com.sec.android.app.fm.xml|system"
+    "system/system/etc/permissions/signature-permissions-com.sec.android.app.fm.xml|system"
+    "system/system/etc/sysconfig/preinstalled-packages-com.sec.android.app.fm.xml|system"
+    "system/system/lib64/libfmradio_jni.so|system"
+    "system/system/lib64/vendor.qti.hardware.fm-V1-ndk.so|system"
+    "system_ext/lib64/fm_helium.so|system_ext"
+    "system_ext/lib64/libfm-hci.so|system_ext"
+    "system_ext/lib64/vendor.qti.hardware.fm@1.0.so|system_ext"
+    "system/system/lib64/android.hardware.bluetooth.audio-V3-ndk.so|system"
+    "system/system/lib64/android.hardware.audio.common-V2-ndk.so|system"
+    "system/system/lib64/android.media.audio.common.types-V2-ndk.so|system"
+)
+
+for item in "${fm_items[@]}"; do
+    IFS="|" read -r file partition <<< "$item"
+    if [ -f "out/fw/SM-A045F_XID/$file" ]; then
+        if [ "$partition" = "system" ]; then
+            rel_path="${file#system/}"
+            ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "$rel_path" 0 0 755 "u:object_r:system_lib_file:s0"
+        elif [ "$partition" = "system_ext" ]; then
+            ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system_ext" "$file" 0 0 755 "u:object_r:system_lib_file:s0"
+        fi
+    fi
+done
 
 # Download FM Radio app with some changes over GET_GALAXY_STORE_DOWNLOAD_URL
 GET_GALAXY_STORE_DOWNLOAD_URL_RADIO()
