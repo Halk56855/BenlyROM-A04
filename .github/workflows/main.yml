@@ -1,4 +1,4 @@
-name: Copy Installer Folder Content
+name: Fix and Copy Tee Folder Content
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  copy-folder:
+  fix-tee:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main repository
@@ -15,28 +15,29 @@ jobs:
         with:
           submodules: false
 
-      - name: Remove existing submodule if present
+      - name: Remove submodule or directory completely
         run: |
-          git submodule deinit -f target/a04/installer || true
-          git rm -rf target/a04/installer || true
-          rm -rf .git/modules/target/a04/installer || true
-          git config -f .gitmodules --remove-section submodule.target/a04/installer || true
-          rm -rf target/a04/installer
+          git submodule deinit -f target/a04/patches/tee || true
+          git rm -rf target/a04/patches/tee || true
+          rm -rf .git/modules/target/a04/patches/tee || true
+          git config -f .gitmodules --remove-section submodule.target/a04/patches/tee || true
+          rm -rf target/a04/patches/tee
 
-      - name: Checkout target repository
+      - name: Checkout target tee repository
         uses: actions/checkout@v4
         with:
-          repository: 'DaniHasReal/UN1CA-a04-a34x'
-          ref: 'd84dfc7dc3c03abc336767b2d3a32838362b7433'
-          path: 'temp_source'
+          repository: 'ohjhas/target_a04_patches_tee'
+          path: 'temp_tee_source'
 
-      - name: Copy target/a04/installer contents
+      - name: Copy contents to tee folder directly
         run: |
-          mkdir -p target/a04/installer
-          cp -r temp_source/target/a04/installer/* target/a04/installer/
-          rm -rf temp_source
+          mkdir -p target/a04/patches/tee
+          # نسخ الملفات عدا مجلد .git الخاص بالمستودع الفرعي
+          find temp_tee_source -mindepth 1 -maxdepth 1 ! -name '.git' -exec cp -r {} target/a04/patches/tee/ \;
+          rm -rf temp_tee_source
+          
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .gitmodules target/a04/installer
-          git commit -m "Replace submodule with actual installer folder content" || echo "No changes to commit"
+          git add target/a04/patches/tee
+          git commit -m "Remove tee submodule and copy its files directly" || echo "No changes to commit"
           git push
