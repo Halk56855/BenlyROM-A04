@@ -1,0 +1,6 @@
+vendor/** binary
+vendor/* binary
+vendor/tee_f/** binary
+vendor/tee_f/driver/** binary
+vendor/tee_m/** binary
+vendor/tee_m/driver/** binary

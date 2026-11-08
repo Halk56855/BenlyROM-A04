@@ -1,0 +1,6 @@
+# Multi-TEE changelog
+
+# v1.0.0
+- A045F: A045FXXSCEYJ2
+- A045M: A045MUBSDEYJ1
+
