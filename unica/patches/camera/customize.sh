@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # [
 _LOG() { if $DEBUG; then LOGW "$1"; else ABORT "$1"; fi }
 
@@ -16,8 +18,12 @@ LOG_MISSING_PATCHES()
 SOURCE_FIRMWARE_PATH="$(cut -d "/" -f 1 -s <<< "$SOURCE_FIRMWARE")_$(cut -d "/" -f 2 -s <<< "$SOURCE_FIRMWARE")"
 TARGET_FIRMWARE_PATH="$(cut -d "/" -f 1 -s <<< "$TARGET_FIRMWARE")_$(cut -d "/" -f 2 -s <<< "$TARGET_FIRMWARE")"
 
-DELETE_FROM_WORK_DIR "system" "system/cameradata/portrait_data"
-ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/cameradata/portrait_data" 0 0 755 "u:object_r:system_file:s0"
+# Safe portrait_data copy check
+if [ -d "$FW_DIR/$TARGET_FIRMWARE_PATH/system/system/cameradata/portrait_data" ]; then
+    DELETE_FROM_WORK_DIR "system" "system/cameradata/portrait_data"
+    ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/cameradata/portrait_data" 0 0 755 "u:object_r:system_file:s0"
+fi
+
 if [ -f "$SRC_DIR/target/$TARGET_CODENAME/camera/singletake/service-feature.xml" ]; then
     LOG "- Adding /system/system/cameradata/singletake/service-feature.xml"
     EVAL "cp -a \"$SRC_DIR/target/$TARGET_CODENAME/camera/singletake/service-feature.xml\" \"$WORK_DIR/system/system/cameradata/singletake/service-feature.xml\""
@@ -63,7 +69,6 @@ if ! $SOURCE_CAMERA_SUPPORT_MASS_APP_FLAVOR; then
     fi
 else
     if ! $TARGET_CAMERA_SUPPORT_MASS_APP_FLAVOR; then
-        # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_CAMERA_SUPPORT_MASS_APP_FLAVOR" "TARGET_CAMERA_SUPPORT_MASS_APP_FLAVOR"
     fi
 fi
@@ -85,10 +90,7 @@ if grep -q "SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS.*true" "$FW_DIR/$SOURCE_FIRMWAR
     ADD_TO_WORK_DIR "a73xqxx" "system" "system/priv-app/SingleTakeService/SingleTakeService.apk" 0 0 644 "u:object_r:system_file:s0"
 elif ! grep -q "SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS.*true" "$FW_DIR/$SOURCE_FIRMWARE_PATH/system/system/cameradata/camera-feature.xml" 2> /dev/null && \
         grep -q "SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS.*true" "$WORK_DIR/system/system/cameradata/camera-feature.xml" 2> /dev/null; then
-    # TODO handle this condition
-    # shellcheck disable=SC2034
     SOURCE_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS=false
-    # shellcheck disable=SC2034
     TARGET_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS=true
     LOG_MISSING_PATCHES "SOURCE_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS" "TARGET_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS"
     unset SOURCE_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS TARGET_SUPPORT_SINGLE_TAKE_HIGHLIGHT_VIDEOS
@@ -104,10 +106,7 @@ if ! grep -q "ENABLE_SINGLE_TAKE_LITE.*true" "$WORK_DIR/system/system/cameradata
                 "etc/singletake/SmartCrop/SmartCrop.tflite" 0 0 644 "u:object_r:vendor_configs_file:s0"
         fi
     else
-        # TODO handle this condition
-        # shellcheck disable=SC2034
         SOURCE_SUPPORT_SMART_CROP=false
-        # shellcheck disable=SC2034
         TARGET_SUPPORT_SMART_CROP=true
         LOG_MISSING_PATCHES "SOURCE_SUPPORT_SMART_CROP" "TARGET_SUPPORT_SMART_CROP"
         unset SOURCE_SUPPORT_SMART_CROP TARGET_SUPPORT_SMART_CROP
@@ -133,7 +132,6 @@ if [ "$SOURCE_CAMERA_CONFIG_ACTION_CLASSIFIER" ]; then
     fi
 else
     if [ "$TARGET_CAMERA_CONFIG_ACTION_CLASSIFIER" ]; then
-        # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_CAMERA_CONFIG_ACTION_CLASSIFIER" "TARGET_CAMERA_CONFIG_ACTION_CLASSIFIER"
     fi
 fi
@@ -154,7 +152,6 @@ if [[ "$SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" != "$TARGET_CAMERA_CONFIG_GPPM_SOLU
             DELETE_FROM_WORK_DIR "system" "system/lib64/libstartrail.camera.samsung.so"
         elif [[ "$SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" != *"startrail"* ]] && \
                 [[ "$TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS" == *"startrail"* ]]; then
-            # TODO handle this condition
             LOG_MISSING_PATCHES "SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" "TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS"
         fi
         if [[ "$SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" == *"motionclipper"* ]] && \
@@ -162,12 +159,10 @@ if [[ "$SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" != "$TARGET_CAMERA_CONFIG_GPPM_SOLU
             DELETE_FROM_WORK_DIR "system" "system/lib64/libdvs.camera.samsung.so"
         elif [[ "$SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" != *"motionclipper"* ]] && \
                 [[ "$TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS" == *"motionclipper"* ]]; then
-            # TODO handle this condition
             LOG_MISSING_PATCHES "SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" "TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS"
         fi
     else
         if [ "$TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS" ]; then
-            # TODO handle this condition
             LOG_MISSING_PATCHES "SOURCE_CAMERA_CONFIG_GPPM_SOLUTIONS" "TARGET_CAMERA_CONFIG_GPPM_SOLUTIONS"
         fi
     fi
@@ -182,7 +177,6 @@ if $SOURCE_CAMERA_SUPPORT_SDK_SERVICE; then
     fi
 else
     if $TARGET_CAMERA_SUPPORT_SDK_SERVICE; then
-        # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_CAMERA_SUPPORT_SDK_SERVICE" "TARGET_CAMERA_SUPPORT_SDK_SERVICE"
     fi
 fi
@@ -200,7 +194,6 @@ if $SOURCE_CAMERA_SUPPORT_CAMERAX_EXTENSION; then
     fi
 else
     if $TARGET_CAMERA_SUPPORT_CAMERAX_EXTENSION; then
-        # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_CAMERA_SUPPORT_CAMERAX_EXTENSION" "TARGET_CAMERA_SUPPORT_CAMERAX_EXTENSION"
     fi
 fi
@@ -217,7 +210,6 @@ if [[ "$SOURCE_GALLERY_CONFIG_PET_CLUSTER_VERSION" != "None" ]]; then
     fi
 else
     if [[ "$TARGET_GALLERY_CONFIG_PET_CLUSTER_VERSION" != "None" ]]; then
-        # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_GALLERY_CONFIG_PET_CLUSTER_VERSION" "TARGET_GALLERY_CONFIG_PET_CLUSTER_VERSION"
     fi
 fi
@@ -232,20 +224,20 @@ if [[ "$SOURCE_SAIV_CONFIG_ARDOODLE_LIB" != "$TARGET_SAIV_CONFIG_ARDOODLE_LIB" ]
             DELETE_FROM_WORK_DIR "system" "system/etc/ardoodle"
         elif [[ "$SOURCE_SAIV_CONFIG_ARDOODLE_LIB" != *"IMG_PICKING"* ]] && \
                 [[ "$TARGET_SAIV_CONFIG_ARDOODLE_LIB" == *"IMG_PICKING"* ]]; then
-            # TODO handle this condition
             LOG_MISSING_PATCHES "SOURCE_SAIV_CONFIG_ARDOODLE_LIB" "TARGET_SAIV_CONFIG_ARDOODLE_LIB"
         fi
     else
         if [ "$TARGET_SAIV_CONFIG_ARDOODLE_LIB" ]; then
-            # TODO handle this condition
             LOG_MISSING_PATCHES "SOURCE_SAIV_CONFIG_ARDOODLE_LIB" "TARGET_SAIV_CONFIG_ARDOODLE_LIB"
         fi
     fi
 fi
 
-# Camera libs debloat
-if ! grep -q "\"system\"" "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" 2> /dev/null; then
-    DELETE_FROM_WORK_DIR "system" "system/lib64/libRelighting_API.camera.samsung.so"
+# Camera libs debloat with safe checks
+if [ -f "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" ]; then
+    if ! grep -q "\"system\"" "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" 2> /dev/null; then
+        DELETE_FROM_WORK_DIR "system" "system/lib64/libRelighting_API.camera.samsung.so"
+    fi
 fi
 if ! grep -q "SUPPORT_PET_DETECTION.*true" "$WORK_DIR/system/system/cameradata/singletake/service-feature.xml" 2> /dev/null && \
         [[ "$TARGET_SAIV_CONFIG_ARDOODLE_LIB" != *"PET_DETECTION"* ]]; then
@@ -269,8 +261,10 @@ if [ -f "$WORK_DIR/vendor/lib64/libDualCamBokehCapture.camera.samsung.so" ] || {
     if [ ! -f "$WORK_DIR/system/system/lib64/libRelighting_API.camera.samsung.so" ]; then
         DELETE_FROM_WORK_DIR "system" "system/lib64/libarcsoft_dualcam_portraitlighting.so"
     fi
-    if ! grep -q "GlassSegSDK" "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" 2> /dev/null; then
-        DELETE_FROM_WORK_DIR "system" "system/lib64/libarcsoft_single_cam_glasses_seg.so"
+    if [ -f "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" ]; then
+        if ! grep -q "GlassSegSDK" "$WORK_DIR/system/system/cameradata/portrait_data/single_bokeh_feature.json" 2> /dev/null; then
+            DELETE_FROM_WORK_DIR "system" "system/lib64/libarcsoft_single_cam_glasses_seg.so"
+        fi
     fi
     DELETE_FROM_WORK_DIR "system" "system/lib64/libarcsoft_superresolution_bokeh.so"
     DELETE_FROM_WORK_DIR "system" "system/lib64/libdualcam_refocus_image.so"
@@ -400,7 +394,6 @@ if [ -f "$WORK_DIR/vendor/lib64/libDualCamBokehCapture.camera.samsung.so" ]; the
 fi
 
 # Enable camera cutout protection
-# Skip patch if SystemUI RRO exists
 if [ ! "$(find "$WORK_DIR/product/overlay" -maxdepth 1 -type f -name "SystemUI*" 2> /dev/null)" ]; then
     if [[ "$SOURCE_CAMERA_SUPPORT_CUTOUT_PROTECTION" != "$TARGET_CAMERA_SUPPORT_CUTOUT_PROTECTION" ]]; then
         DECODE_APK "system_ext" "priv-app/SystemUI/SystemUI.apk"
