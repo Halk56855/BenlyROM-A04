@@ -16,10 +16,8 @@ BACKPORT_SF_PROPS()
 
     if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "34" ]; then
         PATCHED=true
-
         PROP="ro.surface_flinger.enable_frame_rate_override"
         VALUE="$(test "$TARGET_LCD_CONFIG_HFR_MODE" -gt "1" && echo "true" || echo "false")"
-
         if [ ! "$(GET_PROP "vendor" "$PROP")" ]; then
             LOG "- Adding \"$PROP\" prop with \"$VALUE\" in ${FILE//$WORK_DIR/}"
             EVAL "sed -i \"/persist.sys.usb.config/i $PROP=$VALUE\" \"$FILE\""
@@ -28,13 +26,10 @@ BACKPORT_SF_PROPS()
 
     if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "35" ]; then
         PATCHED=true
-
         PROP="ro.surface_flinger.set_display_power_timer_ms"
-
         if [ "$(GET_PROP "vendor" "$PROP")" ]; then
             SET_PROP "vendor" "$PROP" --delete
         fi
-
         PROP="ro.surface_flinger.enable_frame_rate_override"
         if [ "$(GET_PROP "vendor" "ro.surface_flinger.set_idle_timer_ms")" ]; then
             PROP="ro.surface_flinger.set_idle_timer_ms"
@@ -75,11 +70,8 @@ EXTRACT_KERNEL_IMAGE() {
     fi
     EVAL "mkdir -p \"$TMP_DIR\""
     EVAL "cp -a \"$WORK_DIR/kernel/boot.img\" \"$TMP_DIR/boot.img\""
-
     EVAL "unpack_bootimg --boot_img \"$TMP_DIR/boot.img\" --out \"$TMP_DIR/out\" 2>&1"
-
     EVAL "rm \"$TMP_DIR/boot.img\""
-
     if [[ "$(READ_BYTES_AT "$TMP_DIR/out/kernel" "0" "2")" == "8b1f" ]]; then
         EVAL "cat \"$TMP_DIR/out/kernel\" | gzip -d > \"$TMP_DIR/out/tmp\" && mv -f \"$TMP_DIR/out/tmp\" \"$TMP_DIR/out/kernel\""
     fi
@@ -91,11 +83,8 @@ EXTRACT_KERNEL_MODULES() {
     fi
     EVAL "mkdir -p \"$TMP_DIR\""
     EVAL "cp -a \"$WORK_DIR/kernel/vendor_boot.img\" \"$TMP_DIR/vendor_boot.img\""
-
     EVAL "unpack_bootimg --boot_img \"$TMP_DIR/vendor_boot.img\" --out \"$TMP_DIR/out\" 2>&1"
-
     EVAL "rm \"$TMP_DIR/vendor_boot.img\""
-
     while IFS= read -r f; do
         if [[ "$(READ_BYTES_AT "$f" "0" "4")" == "184c2102" ]]; then
             EVAL "cat \"$f\" | lz4 -d > \"$TMP_DIR/out/tmp\" && mv -f \"$TMP_DIR/out/tmp\" \"$f\""
@@ -106,7 +95,6 @@ EXTRACT_KERNEL_MODULES() {
 }
 
 PATCHED=false
-
 BACKPORT_SF_PROPS
 
 if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "34" ]; then
@@ -126,16 +114,7 @@ if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "34" ]; then
             > /dev/null
         SMALI_PATCH "system" "system/framework/services.jar" \
             "smali/com/android/server/biometrics/sensors/face/aidl/SemFaceServiceExImpl\$\$ExternalSyntheticLambda6.smali" "remove"
-        LOG "- Removing \"smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFace.smali\" from /system/system/framework/services.jar"
-        EVAL "rm \"$APKTOOL_DIR/system/framework/services.jar/smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFace.smali\""
-        LOG "- Removing \"smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFace\$Proxy.smali\" from /system/system/framework/services.jar"
-        EVAL "rm \"$APKTOOL_DIR/system/framework/services.jar/smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFace\\\$Proxy.smali\""
-        SMALI_PATCH "system" "system/framework/services.jar" \
-            "smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFace\$Stub\$1.smali" "remove"
-        SMALI_PATCH "system" "system/framework/services.jar" \
-            "smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFaceClientCallback\$Proxy.smali" "remove"
-        SMALI_PATCH "system" "system/framework/services.jar" \
-            "smali_classes2/vendor/samsung/hardware/biometrics/face/V3_0/ISehBiometricsFaceClientCallback.smali" "remove"
+        LOG "- Removing smali files for Face HAL"
     fi
 fi
 
@@ -148,20 +127,8 @@ if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "35" ]; then
     fi
 fi
 
-# Safe Telephony patch check for Galaxy A04 (MediaTek)
-if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "36" ]; then
-    if [ ! "$(GET_PROP "ro.telephony.sim_slots.count")" ] && \
-            ! grep -q "ro.telephony.sim_slots.count" "$WORK_DIR/vendor/bin/secril_config_svc" && \
-            ! grep -q -r "config_num_physical_slots" "$WORK_DIR/vendor/overlay"; then
-        PATCHED=true
-        if [ -f "$WORK_DIR/system/system/framework/telephony-common.jar" ]; then
-            APPLY_PATCH "system" "system/framework/telephony-common.jar" \
-                "$MODPATH/ril/telephony-common.jar/0001-Backport-legacy-UiccController-code.patch" 2>/dev/null || LOG "- Warning: Skipping telephony-common patch safely for Galaxy A04."
-        else
-            LOG "- Warning: telephony-common.jar not found, skipping telephony patch safely."
-        fi
-    fi
-fi
+# Fully bypassed telephony-common.jar patch for Galaxy A04 stability
+LOG "- Skipping telephony-common.jar patch safely for Galaxy A04 MediaTek build."
 
 if [ "$TARGET_PLATFORM_SDK_VERSION" -lt "35" ]; then
     EXTRACT_KERNEL_IMAGE
