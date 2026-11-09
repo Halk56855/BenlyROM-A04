@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Safe JDM camera libraries copy for Galaxy A04
+# Safe JDM camera libraries copy for Galaxy A04 (skipping missing portrait_data)
 libs=(
     libBST3DDNS.so libBstStick2D.so libBSTAiScene.so libbst_mosaic.so libBSTBeauty.so
     libglext.so libBSTDocShadowRemove.so libjniBst3ddns.so libBSTDualCamBokeh.so libjniBstAiDoc.so
