@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-# Safe JDM camera libraries copy for Galaxy A04 (skipping missing portrait_data)
+# Safe camera patch script for Galaxy A04 (skipping missing portrait_data)
+
+# Check and copy portrait_data only if it exists in the source firmware
+if [ -e "$TARGET_FIRMWARE/system/system/cameradata/portrait_data" ]; then
+    ADD_TO_WORK_DIR "$TARGET_FIRMWARE" "system" "system/cameradata/portrait_data" 0 0 755 "u:object_r:system_file:s0"
+fi
+
+# Safe JDM camera libraries copy
 libs=(
     libBST3DDNS.so libBstStick2D.so libBSTAiScene.so libbst_mosaic.so libBSTBeauty.so
     libglext.so libBSTDocShadowRemove.so libjniBst3ddns.so libBSTDualCamBokeh.so libjniBstAiDoc.so
