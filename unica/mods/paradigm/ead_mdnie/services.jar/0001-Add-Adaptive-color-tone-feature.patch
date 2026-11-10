@@ -1,15 +1,15 @@
 From 0a2c9b055bdc8e25c96c75785c993daf3beaaa66 Mon Sep 17 00:00:00 2001
 From: Salvo Giangreco <giangrecosalvo9@gmail.com>
 Date: Sun, 7 Sep 2025 13:32:10 +0200
-Subject: [PATCH] Add Adaptive color tone feature
+Subject: [PATCH] Add Adaptive color tone feature (A04 Patch Bypass)
 
 ---
  .../EyeComfortSolutionService.smali           | 531 ++++++++++--------
  .../MdnieScenarioControlService.smali         |   2 +-
  ...anagerService$ScreenWatchingReceiver.smali |  62 +-
  ...MdnieManagerService$SettingsObserver.smali | 184 +++++-
- .../display/SemMdnieManagerService.smali      | 446 ++++++++++++++-
- 5 files changed, 950 insertions(+), 275 deletions(-)
+ .../display/SemMdnieManagerService.smali      | 440 ++++++++++++++-
+ 5 files changed, 944 insertions(+), 275 deletions(-)
 
 diff --git a/smali_classes2/com/samsung/android/displaysolution/EyeComfortSolutionService.smali b/smali_classes2/com/samsung/android/displaysolution/EyeComfortSolutionService.smali
 index 6e666701e..c05114da5 100644
@@ -657,7 +657,7 @@ index 6e666701e..c05114da5 100644
  
      const-wide v11, 0x40b7700000000000L    # 6000.0
  
-@@ -2017,24 +2025,24 @@
+@@ -2017,24;24 @@
  
      int-to-double v13, v1
  
@@ -793,8 +793,8 @@ index 6e666701e..c05114da5 100644
 +    const/16 v3, 0x65
 +
 +    goto :goto_1
- 
-     :cond_3
++
++    :cond_3
 +    if-nez v3, :cond_4
 +
 +    const/16 v3, 0x2f
@@ -864,7 +864,7 @@ index 3b2808baa..af9ab229a 100644
 -    const-string/jumbo v1, "mEnvironmentAdaptiveDisplaySupported false , mGlareReductionSupported : false"
 +    const-string/jumbo v1, "mEnvironmentAdaptiveDisplaySupported true , mGlareReductionSupported : false"
  
-     invoke-static {v7, v1}, Landroid/util/Slog;->i(Ljava/lang/String;Ljava/lang/String;)I
+     invoke-static {7, v1}, Landroid/util/Slog;->i(Ljava/lang/String;Ljava/lang/String;)I
  
 diff --git a/smali_classes2/com/samsung/android/hardware/display/SemMdnieManagerService$ScreenWatchingReceiver.smali b/smali_classes2/com/samsung/android/hardware/display/SemMdnieManagerService$ScreenWatchingReceiver.smali
 index b961d71d2..bdaa2a68c 100644
@@ -1054,7 +1054,7 @@ index 71eff30d3..787961d67 100644
 +
 +    move-result p1
 +
-+    invoke-virtual {v0, p1}, Lcom/samsung/android/displayaiqe/DisplayAiqeManager;->setEnvironmentAdaptiveDisplayMode(I)Z
++    invoke-virtual {0, p1}, Lcom/samsung/android/displayaiqe/DisplayAiqeManager;->setEnvironmentAdaptiveDisplayMode(I)Z
 +
 +    goto :goto_1
 +
@@ -1274,7 +1274,7 @@ index 71eff30d3..787961d67 100644
  
      iget-object p1, p0, Lcom/samsung/android/hardware/display/SemMdnieManagerService$SettingsObserver;->this$0:Lcom/samsung/android/hardware/display/SemMdnieManagerService;
  
-@@ -428,12 +558,12 @@
+@@ -428,12;12 @@
  
      invoke-static {p1, v5}, Lcom/samsung/android/hardware/display/SemMdnieManagerService;->sysfsWrite(ILjava/lang/String;)Z
  
@@ -1402,124 +1402,124 @@ index 5bdf8c673..92d367f9c 100644
      invoke-virtual {v1, v3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
  
 @@ -1805,6 +1835,121 @@
-     return p0
+-    return p0
+-.end method
+-
+ .method public static sysfsWrite_AdaptiveArray(Ljava/lang/String;[I)V
+     .locals 3
+ 
+     new-instance v0, Ljava/lang/StringBuilder;
+ 
+     invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+ 
+     const/4 v1, 0x0
+ 
+     aget v1, p1, v1
+ 
+     invoke-static {v1}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+ 
+     move-result-object v1
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
+     const-string v1, " "
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
+     const/4 v2, 0x1
+ 
+     aget v2, p1, v2
+ 
+     invoke-static {v2}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+ 
+     move-result-object v2
+ 
+     invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
+     invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+ 
+     const/4 v1, 0x2
+ 
+     aget p1, p1, v1
+ 
+     invoke-static {v0, p1}, Lcom/android/server/am/ProcessList$$ExternalSyntheticOutline0;->m(Ljava/lang/StringBuilder;I)Ljava/lang/String;
+ 
+     move-result-object p1
+ 
+     const/4 v0, 0x0
+ 
+     :try_start_0
+     new-instance v1, Ljava/io/FileOutputStream;
+ 
+     new-instance v2, Ljava/io/File;
+ 
+     invoke-direct {v2, p0}, Ljava/io/File;-><init>(Ljava/lang/String;)V
+ 
+     invoke-direct {v1, v2}, Ljava/io/FileOutputStream;-><init>(Ljava/io/File;)V
+     :try_end_0
+     .catch Ljava/io/FileNotFoundException; {:try_start_0 .. :try_end_0} :catch_2
+     .catch Ljava/io/IOException; {:try_start_0 .. :try_end_0} :catch_1
+ 
+     :try_start_1
+     const-string/jumbo p0, "UTF-8"
+ 
+     invoke-static {p0}, Ljava/nio/charset/Charset;->forName(Ljava/lang/String;)Ljava/nio/charset/Charset;
+ 
+     move-result-object p0
+ 
+     invoke-virtual {p1, p0}, Ljava/lang/String;->getBytes(Ljava/nio/charset/Charset;)[B
+ 
+     move-result-object p0
+ 
+     invoke-virtual {v1, p0}, Ljava/io/FileOutputStream;->write([B)V
+ 
+     invoke-virtual {v1}, Ljava/io/FileOutputStream;->close()V
+     :try_end_1
+     .catch Ljava/io/IOException; {:try_start_1 .. :try_end_1} :catch_0
+ 
+     return-void
+ 
+     :catch_0
+     move-exception p0
+ 
+     move-object v0, v1
+ 
+     goto :goto_0
+ 
+     :catch_1
+     move-exception p0
+ 
+     goto :goto_0
+ 
+     :catch_2
+     move-exception p0
+ 
+     :try_start_2
+     invoke-virtual {p0}, Ljava/io/FileNotFoundException;->printStackTrace()V
+     :try_end_2
+     .catch Ljava/io/IOException; {:try_start_2 .. :try_end_2} :catch_1
+ 
+     goto :goto_1
+ 
+     :goto_0
+     invoke-virtual {p0}, Ljava/io/IOException;->printStackTrace()V
+ 
+     :try_start_3
+     invoke-virtual {v0}, Ljava/io/FileOutputStream;->close()V
+     :try_end_3
+     .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_3} :catch_3
+ 
+     goto :goto_1
+ 
+     :catch_3
+     move-exception p0
+ 
+     invoke-virtual {p0}, Ljava/lang/Exception;->printStackTrace()V
+ 
+     :goto_1
+     return-void
  .end method
  
-+.method public static sysfsWrite_AdaptiveArray(Ljava/lang/String;[I)V
-+    .locals 3
-+
-+    new-instance v0, Ljava/lang/StringBuilder;
-+
-+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-+
-+    const/4 v1, 0x0
-+
-+    aget v1, p1, v1
-+
-+    invoke-static {v1}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
-+
-+    move-result-object v1
-+
-+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+
-+    const-string v1, " "
-+
-+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+
-+    const/4 v2, 0x1
-+
-+    aget v2, p1, v2
-+
-+    invoke-static {v2}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
-+
-+    move-result-object v2
-+
-+    invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+
-+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-+
-+    const/4 v1, 0x2
-+
-+    aget p1, p1, v1
-+
-+    invoke-static {v0, p1}, Lcom/android/server/am/ProcessList$$ExternalSyntheticOutline0;->m(Ljava/lang/StringBuilder;I)Ljava/lang/String;
-+
-+    move-result-object p1
-+
-+    const/4 v0, 0x0
-+
-+    :try_start_0
-+    new-instance v1, Ljava/io/FileOutputStream;
-+
-+    new-instance v2, Ljava/io/File;
-+
-+    invoke-direct {v2, p0}, Ljava/io/File;-><init>(Ljava/lang/String;)V
-+
-+    invoke-direct {v1, v2}, Ljava/io/FileOutputStream;-><init>(Ljava/io/File;)V
-+    :try_end_0
-+    .catch Ljava/io/FileNotFoundException; {:try_start_0 .. :try_end_0} :catch_2
-+    .catch Ljava/io/IOException; {:try_start_0 .. :try_end_0} :catch_1
-+
-+    :try_start_1
-+    const-string/jumbo p0, "UTF-8"
-+
-+    invoke-static {p0}, Ljava/nio/charset/Charset;->forName(Ljava/lang/String;)Ljava/nio/charset/Charset;
-+
-+    move-result-object p0
-+
-+    invoke-virtual {p1, p0}, Ljava/lang/String;->getBytes(Ljava/nio/charset/Charset;)[B
-+
-+    move-result-object p0
-+
-+    invoke-virtual {v1, p0}, Ljava/io/FileOutputStream;->write([B)V
-+
-+    invoke-virtual {v1}, Ljava/io/FileOutputStream;->close()V
-+    :try_end_1
-+    .catch Ljava/io/IOException; {:try_start_1 .. :try_end_1} :catch_0
-+
-+    return-void
-+
-+    :catch_0
-+    move-exception p0
-+
-+    move-object v0, v1
-+
-+    goto :goto_0
-+
-+    :catch_1
-+    move-exception p0
-+
-+    goto :goto_0
-+
-+    :catch_2
-+    move-exception p0
-+
-+    :try_start_2
-+    invoke-virtual {p0}, Ljava/io/FileNotFoundException;->printStackTrace()V
-+    :try_end_2
-+    .catch Ljava/io/IOException; {:try_start_2 .. :try_end_2} :catch_1
-+
-+    goto :goto_1
-+
-+    :goto_0
-+    invoke-virtual {p0}, Ljava/io/IOException;->printStackTrace()V
-+
-+    :try_start_3
-+    invoke-virtual {v0}, Ljava/io/FileOutputStream;->close()V
-+    :try_end_3
-+    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_3} :catch_3
-+
-+    goto :goto_1
-+
-+    :catch_3
-+    move-exception p0
-+
-+    invoke-virtual {p0}, Ljava/lang/Exception;->printStackTrace()V
-+
-+    :goto_1
-+    return-void
-+.end method
-+
  
  # virtual methods
  .method public final afpcDataApply()Z
@@ -1845,7 +1845,7 @@ index 5bdf8c673..92d367f9c 100644
 +
 +    invoke-static {v3, p0}, Landroid/util/Slog;->i(Ljava/lang/String;Ljava/lang/String;)I
  
-+    const/4 p0, 0x1
++    const/4 p0, 01
 +
 +    return p0
 +
@@ -1856,4 +1856,3 @@ index 5bdf8c673..92d367f9c 100644
      return p0
 -- 
 2.51.1
-
